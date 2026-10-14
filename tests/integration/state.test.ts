@@ -50,6 +50,13 @@ describe("student account registration and authentication", () => {
     const account = await response.json();
     expect(account).toMatchObject({ ok: true, account: { email: "student@example.com" } });
     expect(account.account).not.toHaveProperty("password");
+    const session = response.cookies.get(AUTH_COOKIE_NAME);
+    if (!session) throw new Error("Signup did not return a session cookie.");
+    const dashboardData = await GET(new NextRequest("http://localhost/api/state", {
+      headers: { cookie: `${AUTH_COOKIE_NAME}=${session.value}` },
+    }));
+    expect(dashboardData.status).toBe(200);
+
     const storedAccounts = await readFile(path.join(dataDir, "accounts.json"), "utf8");
     expect(storedAccounts).not.toContain("a-strong-student-password");
     expect(storedAccounts).toContain('"passwordHash"');

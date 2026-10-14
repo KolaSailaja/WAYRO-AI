@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useAppState } from "@/components/app/AppStateProvider";
 import { OpportunityCard } from "@/components/ui/OpportunityCard";
 import { DemoNotice, EmptyState, PageHeading, SectionCard } from "@/components/ui";
+import { AICoachPanel } from "@/components/views/AICoachPanel";
 import { rankOpportunities } from "@/lib/matching/score";
 import { calculateProgress } from "@/lib/progress/calculate";
 
@@ -131,6 +132,8 @@ export function DashboardView() {
               <Link className="text-indigo-700" href="/journey">Explore your journey →</Link>
             </div>
           </SectionCard>
+
+          <AICoachPanel opportunity={recommendations[0]?.opportunity ?? catalog[0]} />
 
           <SectionCard>
             <div className="flex items-center justify-between gap-2 mb-3">

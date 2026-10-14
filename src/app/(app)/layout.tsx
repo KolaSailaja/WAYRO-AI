@@ -15,13 +15,17 @@ import type { ReactNode } from "react";
  * it does NOT appear in the URL. All routes inside are at the root:
  *   /dashboard, /opportunities, /readiness, etc.
  */
-export default async function AppLayout({ children }: { children: ReactNode }) {
+async function AuthenticatedApp({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
   if (!getSessionUserId(cookieStore.get(AUTH_COOKIE_NAME)?.value)) redirect("/login");
 
+  return <AppShell>{children}</AppShell>;
+}
+
+export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <Suspense fallback={<div className="p-8 text-sm text-slate-500" role="status">Loading WAYRO AI…</div>}>
-      <AppShell>{children}</AppShell>
+      <AuthenticatedApp>{children}</AuthenticatedApp>
     </Suspense>
   );
 }

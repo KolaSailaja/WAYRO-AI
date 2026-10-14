@@ -121,9 +121,9 @@ export async function updateStateForUser(
     const snapshot = clone(mutator(current));
     const target = userStateFile(userId);
     const temporary = `${target}.${randomUUID()}.tmp`;
-    await mkdir(path.dirname(target), { recursive: true });
+    await mkdir(path.dirname(target), { recursive: true, mode: 0o700 });
     try {
-      await writeFile(temporary, JSON.stringify(snapshot, null, 2), { encoding: "utf8", flag: "wx" });
+      await writeFile(temporary, JSON.stringify(snapshot, null, 2), { encoding: "utf8", flag: "wx", mode: 0o600 });
       await rename(temporary, target);
     } catch (error) {
       throw new Error(`Unable to save student workspace data: ${error instanceof Error ? error.message : "unknown filesystem error"}`);

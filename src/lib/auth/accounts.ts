@@ -4,6 +4,7 @@ import path from "node:path";
 import { z } from "zod";
 
 const PASSWORD_MIN_LENGTH = 12;
+const DUMMY_PASSWORD_SALT = Buffer.from("wayro-account-login-dummy-salt", "utf8");
 const accountSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
@@ -57,11 +58,11 @@ async function readAccounts(): Promise<StoredAccount[]> {
 
 async function writeAccounts(accounts: StoredAccount[]): Promise<void> {
   const directory = dataDirectory();
-  await mkdir(directory, { recursive: true });
+  await mkdir(directory, { recursive: true, mode: 0o700 });
   const target = path.join(directory, ACCOUNT_FILE);
   const temporary = `${target}.${randomUUID()}.tmp`;
   try {
-    await writeFile(temporary, JSON.stringify(accounts, null, 2), { encoding: "utf8", flag: "wx" });
+    await writeFile(temporary, JSON.stringify(accounts, null, 2), { encoding: "utf8", flag: "wx", mode: 0o600 });
     await rename(temporary, target);
   } catch (error) {
     throw new Error(`Unable to save student accounts: ${error instanceof Error ? error.message : "unknown filesystem error"}`);
@@ -112,7 +113,10 @@ export async function authenticateAccount(email: string, password: string): Prom
   const normalizedEmail = email.trim().toLowerCase();
   const accounts = await readAccounts();
   const account = accounts.find((item) => item.email === normalizedEmail);
-  if (!account) return null;
+  if (!account) {
+    scryptSync(password, DUMMY_PASSWORD_SALT, 64);
+    return null;
+  }
 
   const candidate = passwordDigest(password, account.passwordSalt);
   const expected = Buffer.from(account.passwordHash, "hex");

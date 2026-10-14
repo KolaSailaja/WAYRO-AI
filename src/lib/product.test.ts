@@ -9,6 +9,7 @@ import { evaluateTrust } from "@/lib/trust/flags";
 import { generateProposals } from "@/lib/hackathon/generate";
 import { parseEnv } from "@/lib/env";
 import { parseProfile } from "@/lib/profile/schema";
+import { buildOpportunityCoachPlan } from "@/lib/ai/coaching";
 
 describe("student opportunity workflows", () => {
   it("keeps heuristic scores within their documented range", () => {
@@ -98,5 +99,22 @@ describe("student opportunity workflows", () => {
     expect(parseProfile(profile).success).toBe(true);
     expect(parseEnv({ AI_PROVIDER: "mock" }).AI_PROVIDER).toBe("mock");
     expect(() => parseEnv({ AUTH_SECRET: "not-a-valid-secret" })).toThrow(/AUTH_SECRET must be at least 32 characters/);
+  });
+
+  it("builds a practical opportunity coach plan from the student profile and opportunity gap analysis", () => {
+    const profile = defaultState().profile;
+    profile.name = "Aanya";
+    profile.skills = [
+      { id: "skill-1", name: "Python", category: "software", level: "intermediate" },
+      { id: "skill-2", name: "Product thinking", category: "product", level: "intermediate" },
+    ];
+
+    const plan = buildOpportunityCoachPlan(profile, OPPORTUNITY_CATALOG[0]);
+
+    expect(plan.opportunityTitle).toBe(OPPORTUNITY_CATALOG[0].title);
+    expect(plan.summary).toContain(OPPORTUNITY_CATALOG[0].title);
+    expect(plan.missingSkills.length).toBeGreaterThan(0);
+    expect(plan.nextSteps.length).toBeGreaterThan(0);
+    expect(plan.caveat).toMatch(/not real AI|not a verified|mock/i);
   });
 });

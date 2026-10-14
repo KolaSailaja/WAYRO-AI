@@ -43,6 +43,7 @@ All opportunity listings and learning entries are labelled examples. No live opp
 ```powershell
 npm install
 Copy-Item .env.example .env.local
+# Set a persistent random value of at least 32 characters in .env.local as AUTH_SECRET.
 npm run dev
 ```
 
